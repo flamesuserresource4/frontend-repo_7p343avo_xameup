@@ -1,28 +1,44 @@
-import { useState } from 'react'
+import { lazy, Suspense } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import Nav from './components/Nav'
+import Footer from './components/Footer'
 
-function App() {
-  const [count, setCount] = useState(0)
+const Home = lazy(() => import('./pages/Home'))
+const Portfolio = lazy(() => import('./pages/Portfolio'))
+const About = lazy(() => import('./pages/About'))
+const Contact = lazy(() => import('./pages/Contact'))
 
+function PageTransition({ children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
   )
 }
 
-export default App
+export default function App() {
+  const location = useLocation()
+
+  return (
+    <div className="min-h-screen bg-white text-neutral-900">
+      <Nav />
+      <AnimatePresence mode="wait">
+        <Suspense fallback={<div className="pt-24 pb-24 text-center">Loading...</div>}>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
+          </Routes>
+        </Suspense>
+      </AnimatePresence>
+      <Footer />
+    </div>
+  )
+}
